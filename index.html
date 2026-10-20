@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baramulla Post Office · Token</title><style>
+body{font-family:system-ui,sans-serif;background:#f4f1ea;margin:0;padding:20px;color:#222}
+.c{max-width:420px;margin:auto;background:#fff;border-radius:14px;padding:22px;border-top:6px solid #c8102e}
+h1{font-size:20px;margin:0}.s{color:#666;margin:4px 0 16px}
+label{display:block;font-size:14px;margin:12px 0 4px}
+input,select{width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:1px solid #ccc;border-radius:8px}
+.ck{display:flex;gap:8px;align-items:flex-start;color:#444}.ck input{width:auto;margin-top:3px}
+button{width:100%;padding:14px;margin-top:16px;font-size:17px;background:#c8102e;color:#fff;border:0;border-radius:8px}
+button.g{background:#fff;color:#c8102e;border:1px solid #c8102e}
+.e{color:#c8102e;font-size:14px;min-height:18px}
+.big{font-size:80px;font-weight:bold;color:#c8102e;margin:6px 0}
+</style></head><body>
+<div class="c" id="f"><h1>Baramulla Post Office</h1><p class="s">Get your token number</p>
+<label>Your name</label><input id="n" autocomplete="name">
+<label>Mobile number</label><input id="m" type="tel" inputmode="numeric" maxlength="10">
+<label>What do you need today?</label><select id="v">
+<option>Book a parcel or letter</option><option>Deposit or withdraw money</option>
+<option>Open a new account</option><option>Aadhaar or other service</option></select>
+<label class="ck"><input type="checkbox" id="k"> Send me updates about India Post schemes on this number</label>
+<p class="e" id="e"></p><button id="b" onclick="go()">Get token</button></div>
+<div class="c" id="t" style="display:none;text-align:center"><p class="s">Your token number</p>
+<div class="big" id="tn"></div><p id="ta"></p><p class="s">Please watch the display screen for your number.</p>
+<button class="g" onclick="another()">Get token for another person</button></div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbyCBkwRBpDzP2SBS_dOQo5A0pXW05iktV84MUhe-UEnSU8aLuCbIY7VvBqGMwLDjo9cgA/exec';
+const $=id=>document.getElementById(id);
+const saved=JSON.parse(localStorage.getItem('tk')||'null');
+if(saved&&saved.d===new Date().toDateString())show(saved);
+async function go(){
+ const n=$('n').value.trim(),m=$('m').value.trim();$('e').textContent='';
+ if(n.length<2){$('e').textContent='Please enter your name';return}
+ if(!/^[6-9]\d{9}$/.test(m)){$('e').textContent='Please enter a valid 10-digit mobile number';return}
+ $('b').disabled=true;$('b').textContent='Please wait...';
+ try{
+  const res=await fetch(API,{method:'POST',body:JSON.stringify({name:n,mob:m,svc:$('v').value,consent:$('k').checked})});
+  const j=await res.json();
+  if(!j.ok)throw new Error(j.error);
+  const r=j.data;r.d=new Date().toDateString();localStorage.setItem('tk',JSON.stringify(r));show(r);
+ }catch(x){$('e').textContent=x.message&&x.message.length<80?x.message:'Network problem. Please try again.';
+  $('b').disabled=false;$('b').textContent='Get token';}
+}
+function show(r){$('f').style.display='none';$('t').style.display='block';$('tn').textContent=r.tok;
+ $('ta').textContent=(r.again?'This number already has a token. ':'')+(r.ahead===0?'You are next!':r.ahead+(r.ahead===1?' person':' people')+' ahead of you');}
+function another(){localStorage.removeItem('tk');$('n').value='';$('m').value='';$('k').checked=false;
+ $('b').disabled=false;$('b').textContent='Get token';$('t').style.display='none';$('f').style.display='block';}
+</script></body></html>
